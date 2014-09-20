@@ -813,6 +813,8 @@ $(document).ready(function() {
 			preload.data('index', 0).prop('src', '');
 			$('.gallery-list').trigger('init');
 			$(document).off('mousewheel.reader');
+			thumbsList.empty();
+			$('.inner', pagesContainer).empty();
 		}
 
 		$('.close', container).click(close);
