@@ -14,7 +14,7 @@ class Model_Gallery extends Model_Abstract {
 
 	public static function search($page, $pagesize, $search, $order, $randomSeed = null, $unarchived = false) {
 		$query = new QueryHelper();
-
+		
 		if($order === 'random') {
 			$query->sql('select *, crc32(to_string(id + :seed)) as rnd from galleries');
 			$query->addParams(array('seed' => $randomSeed));
