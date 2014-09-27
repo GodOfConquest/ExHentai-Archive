@@ -17,6 +17,9 @@ var Reader = function() {
 		this.initPages();
 		this.loadPage(0);
 		this.loadThumbs();
+		this.setDetails();
+		this.setHistory();
+		this.setEvents();
 		this.container.show();
 	};
 
@@ -44,8 +47,8 @@ var Reader = function() {
 		var page = this.pages.eq(index);
 		var img = $('img', page);
 
-		if(!page.data('loading')) {
-			page.data('loading', true);
+		if(!page.hasClass('loading')) {
+			page.addClass('loading');
 
 			var url = '/api.php?' + $.param({ action: 'archiveimage', id: this.gallery.id, index: index, resize: this.resize });
 			img.prop('src', url);
@@ -75,8 +78,21 @@ var Reader = function() {
 		page.addClass('loaded');
 	};
 
-	this.scrollToPage = function(page) {
+	this.scrollToPage = function(page, bottom) {
+		if(this.pagesContainer.is(':animated')) {
+			return false;
+		}
+
 		var scroll = page.position().top;
+
+		if(bottom) {
+			scroll += page.height();
+			scroll -= window.innerHeight;
+		}
+		else {
+			scroll += 20; // 20px margin
+		}
+
 		this.pagesContainer.animate({ scrollTop: scroll }, 200);
 	};
 
@@ -93,6 +109,10 @@ var Reader = function() {
 
 		$('html').removeClass('reader-active');
 
+		$('.gallery-list').trigger('init');
+
+		this.removeEvents();
+
 		this.container.hide();
 	};
 
@@ -106,6 +126,73 @@ var Reader = function() {
 		if(currentScroll > newScroll || newScroll > (currentScroll + this.thumbsContainer.height())) {
 			this.thumbsContainer.scrollTop(newScroll);
 		}
+	};
+
+	this.setDetails = function() {
+		var infoContainer = $('.gallery-info', this.container);
+
+		$('.title', infoContainer).text(this.gallery.name);
+
+		if(this.gallery.origtitle && this.gallery.origtitle != this.gallery.name) {
+			$('.origtitle', infoContainer).show().text(this.gallery.origtitle);
+		}
+		else {
+			$('.origtitle', infoContainer).hide();
+		}
+
+		renderTags($('.tags', infoContainer), this.gallery.tags);
+	};
+
+	this.setHistory = function() {
+		history.pushState({ action: 'gallery', data: { gallery: this.gallery } }, document.title, '?' + $.param({ action: 'gallery', id: this.gallery.id }));
+	};
+
+	this.getCurrentPage = function() {
+		var pages = this.pages;
+
+		var scroll = this.pagesContainer.scrollTop();
+		var scrollPage = pages.first();
+
+		pages.each(function(i) {
+			var page = pages.eq(i);
+			if((page.position().top + page.height()) > scroll) {
+				scrollPage = page;
+				return false;
+			}
+		});
+
+		return scrollPage;
+	};
+
+	this.next = function() {
+		var page = this.getCurrentPage();
+		var scroll = this.pagesContainer.scrollTop();
+
+		// if we haven't reached the bottom of the page yet, scroll to the bottom
+		// allow for 20px , since who's going to care out that?
+		if((page.position().top + page.height()) > ((scroll + window.innerHeight) + 20)) {
+			if(page.hasClass('loaded')) {
+				this.scrollToPage(page, true);
+			}
+		}
+		else {
+			// scroll to the bottom of the next page
+			if(!page.is(':last-child')) {
+				this.scrollToPage(page.next(), false);	
+			}
+		}
+	};
+
+	this.setEvents = function() {
+		$(document).on('keydown.reader', function(e) {
+			if(e.keyCode === 39 || e.keyCode === 68) { // right, D
+				instance.next();
+			}
+		});
+	};
+
+	this.removeEvents = function() {
+		$(document).off('keydown.reader');
 	};
 
 	$('.close', this.container).click(function() {
@@ -135,7 +222,7 @@ var Reader = function() {
 					var index = page.data('index');
 					instance.scrollThumb(index);
 
-					if(!page.data('loading')) {
+					if(!page.hasClass('loading')) {
 						instance.loadPage(index);
 						return false;
 					}
@@ -150,4 +237,16 @@ var Reader = function() {
 
 		pagesScrollProc = setTimeout(updatePagesScroll, 200);
 	});
+
+    $('.actions-menu li', this.container).click(function() {
+        var action = $(this).data('action');
+
+        if(action === 'download') {
+            var url = '/api.php?' + $.param({ action: 'download', id: instance.gallery.id });
+            document.location = url;
+        }
+        else {
+            alert('Not implemented');
+        }
+    });
 };

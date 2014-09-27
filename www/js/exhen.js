@@ -1,56 +1,56 @@
-$(document).ready(function() {
-	var reader = new Reader();
+function api(action, params, callback) {
+	params = $.extend(params, { action: action });
 
-	function api(action, params, callback) {
-		params = $.extend(params, { action: action });
-
-		var ret = $.getJSON('api.php', params, function(resp) {
-			if(!resp.ret) {
-				alert('API error: ' + resp.message);
-			}
-			else {
-				if($.isFunction(callback)) {
-					callback(resp.data);
-				}
-			}
-		});
-
-		return ret;
-	}
-
-	function renderTags(container, tagGroups) {
-		$('.tag', container).remove();
-
-		for(var ns in tagGroups) {
-			var tags = tagGroups[ns];
-
-			for(var x in tags) {
-				var tag = tags[x];
-
-				var tagItem = $('<a/>');
-
-                var tagSearch = escapeTag(ns + ':' + tag);
-                var url = '?' + $.param({ search: tagSearch });
-                tagItem.prop('href', url);
-
-				tagItem.text(tag);
-				tagItem.addClass('tag tag-' + ns);
-				tagItem.data('tag', tag);
-				tagItem.data('ns', ns);
-				tagItem.prop('title', ns + ':' + tag);
-				container.prepend(tagItem);
+	var ret = $.getJSON('api.php', params, function(resp) {
+		if(!resp.ret) {
+			alert('API error: ' + resp.message);
+		}
+		else {
+			if($.isFunction(callback)) {
+				callback(resp.data);
 			}
 		}
-	}
+	});
 
-    function escapeTag(tag) {
-        if(tag.indexOf(' ') >= 0) {
-            return '"' + tag + '"'
-        }
-        else {
-            return tag;
-        }
+	return ret;
+}
+
+function renderTags(container, tagGroups) {
+	$('.tag', container).remove();
+
+	for(var ns in tagGroups) {
+		var tags = tagGroups[ns];
+
+		for(var x in tags) {
+			var tag = tags[x];
+
+			var tagItem = $('<a/>');
+
+            var tagSearch = escapeTag(ns + ':' + tag);
+            var url = '?' + $.param({ search: tagSearch });
+            tagItem.prop('href', url);
+
+			tagItem.text(tag);
+			tagItem.addClass('tag tag-' + ns);
+			tagItem.data('tag', tag);
+			tagItem.data('ns', ns);
+			tagItem.prop('title', ns + ':' + tag);
+			container.prepend(tagItem);
+		}
+	}
+}
+
+function escapeTag(tag) {
+    if(tag.indexOf(' ') >= 0) {
+        return '"' + tag + '"'
     }
+    else {
+        return tag;
+    }
+}
+
+$(document).ready(function() {
+	var reader = new Reader();
 
 	$('.gallery-list').each(function() {
 		var galleryList = $(this);
@@ -59,8 +59,8 @@ $(document).ready(function() {
 		var loading = false;
 		var search = null;
 		var xhr = null;
-		var loadersBottom = $('.loaders-bottom');
-		var loadersTop = $('.loaders-top');
+		var loadersBottom = $('.spinner-bottom');
+		var loadersTop = $('.spinner-top');
 		var searchCount = $('.search-count');
 		var searchForm = $('.search-form');
 		var order = 'posted';
@@ -511,7 +511,7 @@ $(document).ready(function() {
 		}
 		else if(query.action == 'gallery') {
 			api('gallery', { id: query.id }, function(gallery) {
-				//reader.trigger('loadgallery', [ gallery, query.index ])
+				reader.open(gallery);
 			});
 		}
 	}
