@@ -215,12 +215,21 @@ var Reader = function() {
 			var page = instance.pages.eq(i);
 			var pageTop = page.position().top;
 
-
 			if(scrollTopFull > pageTop) { // the bottom of the window is in the top of the page
 				if((pageTop + page.height()) > scrollTop) { // the bottom of the page is in the top of the window
 
 					var index = page.data('index');
 					instance.scrollThumb(index);
+
+                    // preload next page
+                    // currently, preloading only works going forward
+                    var nextPage = page.next();
+                    if(nextPage.length > 0) {
+                        if(!nextPage.hasClass('loading')) {
+                            console.log('preloading: ' + nextPage.data('index'));
+                            instance.loadPage(nextPage.data('index'));
+                        }
+                    }
 
 					if(!page.hasClass('loading')) {
 						instance.loadPage(index);
@@ -241,12 +250,42 @@ var Reader = function() {
     $('.actions-menu li', this.container).click(function() {
         var action = $(this).data('action');
 
-        if(action === 'download') {
+        if(action == 'delete') {
+            var key = prompt('Enter access key');
+            if(key) {
+                api('deletegallery', { id: instance.gallery.id, key: key }, function(data) {
+                    instance.close();
+                });
+            }
+        }
+        else if(action == 'download') {
             var url = '/api.php?' + $.param({ action: 'download', id: instance.gallery.id });
-            document.location = url;
+            window.open(url);
         }
-        else {
-            alert('Not implemented');
+        else if(action == 'similar') {
+            var tagList = [ ];
+            for(var ns in instance.gallery.tags) {
+                for(var i in instance.gallery.tags[ns]) {
+                    var tag = ns + ':' + instance.gallery.tags[ns][i];
+
+                    tag = tag.replace('"', '\\\\"');
+                    tag = '"' + tag + '"';
+
+                    tagList.push(tag);
+                }
+            }
+
+            instance.close();
+
+            var search = tagList.join(' | ');
+
+            $('.gallery-list').trigger('loadstate', [ { search: search, order: 'weight' } ]);
         }
+        else if(action == 'original') {
+            var url = 'http://exhentai.org/g/' + instance.gallery.exhenid + '/' + instance.gallery.hash;
+            window.open(url);
+        }
+
+        return false;
     });
 };
