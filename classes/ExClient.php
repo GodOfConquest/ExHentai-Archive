@@ -3,6 +3,7 @@
 class ExClient {
 
 	const BASE_URL = 'http://exhentai.org/';
+    const USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.104 Safari/537.36';
 
 	private $ctr = 0;
 
@@ -47,7 +48,7 @@ class ExClient {
 
         $cookie = Config::buildCookie();
 		curl_setopt($ch, CURLOPT_COOKIE, $cookie);
-		curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36');
+		curl_setopt($ch, CURLOPT_USERAGENT, self::USER_AGENT);
 		
 		$ret = curl_exec($ch);
 		curl_close($ch);
