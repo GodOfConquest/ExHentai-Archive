@@ -15,7 +15,7 @@ spl_autoload_register(function($className) {
 });
 
 if(php_sapi_name() !== 'cli') {
-	//Auth::doAuth();
+    Auth::doAuth();
 }
 
 require 'lib/rb.php';
