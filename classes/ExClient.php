@@ -50,6 +50,11 @@ class ExClient {
 		curl_setopt($ch, CURLOPT_COOKIE, $cookie);
 		curl_setopt($ch, CURLOPT_USERAGENT, self::USER_AGENT);
 		
+        $config = Config::get();
+        if($config->proxy) {
+            curl_setopt($ch, CURLOPT_PROXY, $config->proxy);
+        }
+
 		$ret = curl_exec($ch);
 		curl_close($ch);
 		

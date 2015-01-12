@@ -9,7 +9,8 @@
         },
 		"tempDir": "./temp",
         "archiveDir": "./archive",
-        "imagesDir": "./images"
+        "imagesDir": "./images",
+        "proxy": ""
 	},
 	"default": {
 		"db": {
